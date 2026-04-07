@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 const tarefas = ref([
   { id: 1, desc: 'Prova Geografia', status: 'pendente' },
   { id: 2, desc: 'Prova História', status: 'concluida' },
@@ -8,6 +8,28 @@ const tarefas = ref([
 
 const novaTarefa = ref('')
 const posicaoAlterar = ref(-1)
+const filtro = ref ('')
+
+const tarefasPendentes = computed(() =>{
+  return tarefas.value.filter(t => t.status == 'pendente').length;
+})
+
+const tarefasConcluidas = computed(() =>{
+  return tarefas.value.filter(t => t.status == 'concluida').length;
+})
+
+const tarefasFiltradas = computed(() =>{
+  if (filtro.value.trim() == ''){
+    return tarefas.value;
+  }
+  else{
+    return tarefas.value.filter (t => t.desc.includes(filtro.value))
+  }
+})
+
+function ordenar(){
+  tarefas.value.sort((a, b) => a.desc.localeCompare(b.desc, 'pt-BR'))
+}
 function addTarefa() {
   if (posicaoAlterar.value == -1) {
     let maiorID = Math.max(...tarefas.value.map(item => item.id));
@@ -45,7 +67,7 @@ function marcarConcluida(id){
     <input type="text" v-model="novaTarefa">
     <button @click="addTarefa">Adicionar</button>
     <ul>
-      <li v-for="item in tarefas" :key="item.id">
+      <li v-for="item in tarefasFiltradas" :key="item.id">
         <span @click="marcarConcluida(item.id)" :class="{concluida: item.status == 'concluida'}">
           {{ item.desc }}
         </span>
@@ -56,6 +78,18 @@ function marcarConcluida(id){
         </span>
       </li>
     </ul>
+    <div>
+      <input type="text" placeholder="Filtrar Tarefa..." v-model="filtro">
+      <button @click.prevent="ordenar()">Ordenar</button>
+    </div>
+    <div class="status">
+      <div>
+        <span>Pendentes: {{tarefasPendentes}}</span>
+      </div>
+      <div>
+        <span>Concluidos: {{tarefasConcluidas}}</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -65,5 +99,9 @@ li{
 }
 .concluida{
   text-decoration: line-through;
+}
+.status {
+  display: flex;
+  gap: 20px;
 }
 </style>
